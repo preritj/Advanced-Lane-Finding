@@ -39,7 +39,7 @@ I used a combination of color and gradient thresholds to split image into 7 bina
 ![](output_images/thresholding/white.png)     
 ![](output_images/thresholding/white_challenge.png) 
 
-From the above images, it can be seen that using positive and negative gradients allows us to differentiate between lane lines from shadow lines and other irrelevant road markings. Concretely, for lane lines, positive and negative threshold lines always appear together.
+From the above images, it can be seen that using positive and negative gradients allows us to differentiate between lane lines from shadow lines and other irrelevant road markings. Concretely, for lane lines, positive and negative threshold lines always appear in vicinity.
 Here are the results for applying gradient thresholds on 'S' channel and yellow color selection: 
 
 ![](output_images/thresholding/yellow.png)     
