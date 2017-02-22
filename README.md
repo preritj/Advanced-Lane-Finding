@@ -87,7 +87,7 @@ Once the lane pixels have been detected using sliding window method, a targeted 
 ### Lane parameters
 To calculate lane parameters, measurement units have to be changed from pixels to real world units such as meter. I use the following conversion : $k_x=3.7/700$ m/pixel in the x-direction and $k_y=30/720$ m/pixel.
 
-* Radius of curvature : The radius of curvature is implemented in `lane_line.calc_R()` function in ******. Since, the original fit was performed in the pixel space, I use the following formula for conversion to real world space :
+* Radius of curvature : The radius of curvature is implemented in `lane_line.calc_R()` function on line 72 of `pipeline.py`. Since, the original fit was performed in the pixel space, I use the following formula for conversion to real world space :
 	$$ R = \frac{(k_x^2 + k_y^2(2Ay+B)^2)^{3/2}}{2 k_x k_y |A|}$$ 
 	
 * To find the position of the vehicle with respect to the center, I calculate the x-coordinate of both the left and right lane lines with repect to the center at the base of the image. The average of the two x-coordinates is the position of the center of the road with respect to the camera center. 
