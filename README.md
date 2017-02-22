@@ -21,23 +21,27 @@ The project consists of following files :
 
 ### Camera calibration
 The code for this step is contained in the file `calibrate.py` wherein the relevant class to handle all operations is called `calibration`. 
-I start by reading all the chess board images using `calibration.add_image()` function. The "object points", which will be the (x, y, z) coordinates of the chessboard corners in the world, is fixed on the (x, y) plane at z=0, such that the object points are the same for each calibration image. Thus, `calibration.obj_points` is appended with a copy of the same coordinates every time I successfully detect all chessboard corners in a test image using the function `calibration.find_corners()`. `calibration.img_points` will be appended with the (x, y) pixel position of each of the corners in the image plane with each successful chessboard detection. Corners for all but three of the images were detected, here are four examples :
+I start by reading all the chess board images using `calibration.add_image()` function. The "object points", which will be the (x, y, z) coordinates of the chessboard corners in the world, is fixed on the (x, y) plane at z=0, such that the object points are the same for each calibration image. Thus, `calibration.obj_points` is appended with a copy of the same coordinates every time I successfully detect all chessboard corners in a test image using the function `calibration.find_corners()`. `calibration.img_points` will be appended with the (x, y) pixel position of each of the corners in the image plane with each successful chessboard detection. Corners for all but three of the images were detected, here are four examples : 
+
 ![](output_images/calibration/corners.png)
 
 Note that three of the images did not have all the 9x6 corners which will be used to test calibration.
 
 I then used the output `calibration.obj_points` and `calibration.img_points` to compute the camera calibration and distortion coefficients in the function using the `cv2.calibrateCamera()` function (please see `calibration.calc_distortion()` for details). I applied this distortion correction to the test image using the `cv2.undistort()` function (please see `calibration.undistort_img()` for details) and obtained the following result for the three test images : 
+
 ![](output_images/calibration/undistorted.png)
 
 --
 
 ### Thresholding
-I used a combination of color and gradient thresholds to split image into 7 binary channels (please see `lane_detection.split_channels()` function on line 35 of the file `lane_detection.py`). Images are first converted to HSV color space and 7 channels are selected : 4 of these channels are obtained by applying Sobel gradient along x-direction on 'S' and 'V' of HSV keeping the sign of threshold instead of taking absolute values i.e. positive and negative gradient thresholds. The 'S' gradient allows us to pick up yellow line edges while 'V' gradient thresholds pick both white and yellow edges. The other 3 channels are obtained by applying color thresholds, 'H' color threshold for picking yellow and 'V' threshold for picking white color (I used two thresholds for white in case one fails). Here are the results of applying gradient thresholds on 'V' channel and white color selection:
+I used a combination of color and gradient thresholds to split image into 7 binary channels (please see `lane_detection.split_channels()` function on line 35 of the file `lane_detection.py`). Images are first converted to HSV color space and 7 channels are selected : 4 of these channels are obtained by applying Sobel gradient along x-direction on 'S' and 'V' of HSV keeping the sign of threshold instead of taking absolute values i.e. positive and negative gradient thresholds. The 'S' gradient allows us to pick up yellow line edges while 'V' gradient thresholds pick both white and yellow edges. The other 3 channels are obtained by applying color thresholds, 'H' color threshold for picking yellow and 'V' threshold for picking white color (I used two thresholds for white in case one fails). Here are the results of applying gradient thresholds on 'V' channel and white color selection: 
+
 ![](output_images/thresholding/white.png)     
 ![](output_images/thresholding/white_challenge.png) 
 
 From the above images, it can be seen that using positive and negative gradients allows us to differentiate between lane lines from shadow lines and other irrelevant road markings. Concretely, for lane lines, positive and negative threshold lines always appear together.
-Here are the results for applying gradient thresholds on 'S' channel and yellow color selection:
+Here are the results for applying gradient thresholds on 'S' channel and yellow color selection: 
+
 ![](output_images/thresholding/yellow.png)     
 ![](output_images/thresholding/yellow_challenge.png)
 
@@ -55,6 +59,7 @@ The code for my perspective transform includes a function called `lane_detection
 | (1055,700)    | (960,720)     |
 
 I verified that my perspective transform was working as expected by drawing the source and destination points onto test images and its warped counterpart to verify that the lines appear parallel in the warped image. 
+
 ![](output_images/perspective/perspective.png) 
 
 --
@@ -63,14 +68,17 @@ I verified that my perspective transform was working as expected by drawing the 
 Two approaches were implemented for finding lane lines. The first approach is the window sliding method which is used when prior lane information does not exist or missing. Although this appraoch is often more robust, it is also computationally time consuming. The other approach is searching for lane pixels in a target region determined by the previous window frame. The second approach is less compuationally intensive and is used for most of the video frames. 
 
 The window sliding method is implemented in `lane_detection.sliding_window()` function on line 231 of the file `lane_detection.py` using 15 windows for each side of the lane. Information from all 7 channels of the thresholding step is utilized. 
-For example, I require that positive gradient edges be accompanied by negative gradient edges, which allows for differentiating lane markings from shadows. For full selection criteria, see the function `lane_detection.get_good_pixels()` on line 107 of `lane_detection.py`.  Here are the results on a test image :
+For example, I require that positive gradient edges be accompanied by negative gradient edges, which allows for differentiating lane markings from shadows. For full selection criteria, see the function `lane_detection.get_good_pixels()` on line 107 of `lane_detection.py`.  Here are the results on a test image : 
+
 ![](output_images/detection/window_sliding.png) 
-As seen above, a more targeted search window is used when relevant pixels are detected. To demonstrate the working of our thresholding, here is one from a more challenging test image:
+As seen above, a more targeted search window is used when relevant pixels are detected. To demonstrate the working of our thresholding, here is one from a more challenging test image: 
+
 ![](output_images/detection/window_sliding_challenge.png)
 
 In order to fit curves to "good" pixels, I have used `numpy.polyfit` function to fit a second order polynomial, implementation of which can be found in the function `lane_detection.curve_fit()` on line 348 of `lane_detection.py`. Concretely, the best fit curves are parametrized as follows :
 $$x = A y^2 + B y + C$$
-Once the lane pixels have been detected using sliding window method, a targeted search is performed in subsequent video frames by focusing on region around the best fit curves from the previous frame (see `lane_detection.target_search()` on line 405 of `lane_detection.py` ). Here is an example :
+Once the lane pixels have been detected using sliding window method, a targeted search is performed in subsequent video frames by focusing on region around the best fit curves from the previous frame (see `lane_detection.target_search()` on line 405 of `lane_detection.py` ). Here is an example : 
+
 ![](output_images/detection/target_search.png)
 
 
